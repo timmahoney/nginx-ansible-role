@@ -1,6 +1,16 @@
 ---
 # tasks file for nginx
 
+- name: Move the Repo RPM over to the box
+  sudo: yes
+  copy: "src=nginx-centos-{{ centos_version | default('7') }}.rpm dest=/tmp/nginx-centos-{{ centos_version | default('7') }}.rpm mode=755"
+  tags: nginx
+
+- name: Install Repo RPM
+  sudo: yes
+  yum: "name=/tmp/nginx-centos-{{ centos_version | default('7') }}.rpm state=present"
+  tags: nginx
+
 - name: Install NGINX Dependencies
   sudo: yes
   yum: "name={{ item }} state=present enablerepo=nginx"
@@ -37,18 +47,18 @@
 
 - name: Create the configurations for sites
   sudo: yes
-  tags: 
+  tags:
   - nginx
   - nginx_virtualhosts
   template: "src=site.conf.j2 dest=/etc/nginx/sites-available/{{ item['file_name'] }}.conf"
   with_items: nginx_sites
   when: nginx_sites|lower is defined
-  notify: 
+  notify:
   - Reload NGINX
 
 - name: Create the link for site enabled specific configurations
   sudo: yes
-  tags: 
+  tags:
   - nginx
   - nginx_virtualhosts
   file: "path=/etc/nginx/sites-enabled/{{ item['file_name'] }}.conf state=link src=/etc/nginx/sites-available/{{ item['file_name'] }}.conf"
@@ -56,10 +66,8 @@
   when: nginx_sites is defined
   notify:
   - Reload NGINX
-  
+
 - name: start the nginx service
   sudo: yes
-  tags: nginx 
+  tags: nginx
   service: name=nginx state=started enabled=yes
-
-  
