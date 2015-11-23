@@ -1,0 +1,41 @@
+# {{ ansible_managed }}
+
+{% if item.upstreams is defined %}
+{% for upstream in item.upstreams %}
+upstream {{ upstream.name }} {
+  server {{ upstream.server }};
+}
+{% endfor %}
+{% endif %}
+{% for server in item.servers %}
+server {
+{% for k,v in server.settings.iteritems() if k != "log_format" %}
+  {{ k }} {{ v }};
+{% endfor %}
+{% if server.locations is defined %}
+{% for location in server.locations %}
+  location {{ location.name }} {
+{% for k,v in location.iteritems() if k != 'name' %}
+{% if v is string %}
+    {{ k }} {{ v | default('') }};
+{% else %}
+{% for i in v %} 
+    {{ k }} {{ i }};
+{% endfor %}
+{% endif %}
+{% endfor %}  
+  }
+{% endfor %}{% endif %}
+{% if server.error_handling is defined %}
+{% for error_settings in server.error_handling %}
+  error_page {{ error_settings.settings.status_codes }};
+{% for location in error_settings.locations %}
+  location {{ location.name }} {
+  {% for k,v in location.iteritems() if k != 'name' %}
+    {{ k }} {{ v | default('') }};
+  {% endfor %}  
+  }
+{% endfor %}{% endfor %}{% endif %}
+}
+{% endfor %}
+

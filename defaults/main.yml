@@ -1,0 +1,38 @@
+---
+# defaults file for nginx
+
+nginx: &nginx
+  worker_processes: 1
+  worker_connections: 1024
+  dependencies:
+  - libselinux-python
+
+  packages:
+  - nginx
+
+  sites: &nginx_sites
+  - file_name: "default"
+    servers:
+    - 
+      settings:
+        listen: "80 default_server"
+        server_name: "_"
+        root: "/var/www/html"
+      
+      locations:
+      -
+        name: "/"
+
+      error_handling:
+      - 
+        settings:
+          status_codes: "404 /404.html"
+        locations:
+        - 
+          name: "/40x.html"
+      -
+        settings:
+          status_codes: "500 502 503 504  /50x.html"
+        locations:
+        - 
+          name: "/50x.html"
