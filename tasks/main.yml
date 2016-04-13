@@ -1,26 +1,20 @@
 ---
 # tasks file for nginx
 
-- name: Move the Repo RPM over to the box
-  sudo: yes
-  copy: "src=nginx-centos-{{ centos_version | default('7') }}.rpm dest=/tmp/nginx-centos-{{ centos_version | default('7') }}.rpm mode=755"
+- name: "NGINX Group Creation"
+  group: name=nginx
   tags: nginx
 
-- name: Install Repo RPM
-  sudo: yes
-  yum: "name=/tmp/nginx-centos-{{ centos_version | default('7') }}.rpm state=present"
+- name: "NGINX User Creation"
+  user: 
+    name: nginx
+    group: nginx
+    groups: "nginx"
+    createhome: "no"
   tags: nginx
 
-- name: Install NGINX Dependencies
-  sudo: yes
-  yum: "name={{ item }} state=present enablerepo=nginx"
-  with_items: nginx.dependencies
-  tags: nginx
-
-- name: Install NGINX Packages
-  sudo: yes
-  yum: "name={{ item }} state=present"
-  with_items: nginx.packages
+- name: Install NGINX
+  include: "{{ ansible_os_family }}.yml"
   tags: nginx
 
 - name: Create the directories for site specific configurations
@@ -51,7 +45,7 @@
   - nginx
   - nginx_virtualhosts
   template: "src=site.conf.j2 dest=/etc/nginx/sites-available/{{ item['file_name'] }}.conf"
-  with_items: nginx_sites
+  with_items: "{{ nginx_sites }}"
   when: nginx_sites|lower is defined
   notify:
   - Reload NGINX
@@ -62,7 +56,7 @@
   - nginx
   - nginx_virtualhosts
   file: "path=/etc/nginx/sites-enabled/{{ item['file_name'] }}.conf state=link src=/etc/nginx/sites-available/{{ item['file_name'] }}.conf"
-  with_items: nginx_sites
+  with_items: "{{ nginx_sites }}"
   when: nginx_sites is defined
   notify:
   - Reload NGINX

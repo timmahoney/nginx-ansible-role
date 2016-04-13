@@ -1,0 +1,13 @@
+---
+
+- name: Install the nginx repository
+  apt_repository: 
+    repo: 'ppa:nginx/stable'
+  tags: nginx
+
+- name: Install NGINX
+  apt:
+    name: nginx
+    state: present
+  tags: nginx
+

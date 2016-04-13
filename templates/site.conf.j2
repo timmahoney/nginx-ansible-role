@@ -18,6 +18,12 @@ server {
 {% for k,v in location.iteritems() if k != 'name' %}
 {% if v is string %}
     {{ k }} {{ v | default('') }};
+{% elif k == 'if' %}
+    if ({{ v.condition }}) {
+    {% for ifk,ifv in v.ifsteps.iteritems() %}
+      {{ ifk }} {{ ifv }};
+    {% endfor %}
+    }
 {% else %}
 {% for i in v %} 
     {{ k }} {{ i }};
